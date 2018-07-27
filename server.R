@@ -111,9 +111,9 @@ server <- function(input, output, session) {
    observeEvent(input$con_aftercheck_cell_edit, {
      info = input$con_aftercheck_cell_edit
      str(info)
-     i = info$row
-     j = info$col + 1  # column index offset by 1
-     v = info$value
+     i <- info$row
+     j <- info$col + 1  # column index offset by 1
+     v <- info$value
      tmp <- con_check_data[['table']]
      tmp[i, j] <- DT::coerceValue(v, tmp[i, j])
      rep <- tmp
