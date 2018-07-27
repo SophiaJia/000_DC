@@ -181,14 +181,14 @@ server <- function(input, output, session) {
 
 
     ta <- cbind(
-      `Variable Name`  = colnames(d_cat),
+      `Variable Name` = colnames(d_cat),
       `Levels` = apply(d_cat, 2, allLevel),
       `Missing No` =  apply(d_cat, 2,function(x) sum(is.na(x))))
     rownames(ta) <- NULL
     ta
 
   }, escape=FALSE,
-  options = list(sDom  = '<"top">lrt<"bottom">ip'))
+  options = list(sDom = '<"top">lrt<"bottom">ip'))
 
   output$inpCategorical234 <- renderDataTable({
     di <- inter_data[['afterfuzzy']]
@@ -326,7 +326,6 @@ server <- function(input, output, session) {
                    div(style = "position:absolute;right:5em;",
                        actionButton('cat_pop_submit',  'Save'))
                    )
-
     )
   })
 
@@ -430,7 +429,7 @@ server <- function(input, output, session) {
               # Hide logical columns
                options=list(
                columnDefs = list(list(targets=date_check_data[['hind_con']],
-                                                   visible=F)),
+                                                   visible=FALSE)),
                sDom  = '<"top">lrt<"bottom">ip')
                ) %>%
   # Format data columns based on the values of hidden logical columns
