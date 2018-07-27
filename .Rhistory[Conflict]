@@ -1,0 +1,512 @@
+})
+observeEvent(input$Go, {
+temp <- values$df_data[-input$Delete, ]
+values$df_data <- temp
+})
+output$df_data_out <- renderTable(values$df_data)
+})))
+shinyApp(
+ui=(fluidPage(
+titlePanel("amend data frame"),
+mainPanel(
+fileInput("file", "Upload file"),
+numericInput("Delete", "Delete row:", 1, step = 1),
+actionButton("Go", "Delete!"),
+tableOutput("df_data_out")
+)
+)),
+server = (function(input, output) {
+values <- reactiveValues(df_data = NULL)
+observeEvent(input$file, {
+values$df_data <- read.csv(input$file$datapath)
+})
+observeEvent(input$Go, {
+temp <- values$df_data[-input$Delete, ]
+values$df_data <- temp
+})
+output$df_data_out <- renderTable(values$df_data)
+}))
+runApp('Sophia_0517Shiny.R')
+runApp('Sophia_0517Shiny.R')
+runApp('Sophia_0517Shiny.R')
+runApp('Sophia_0517Shiny.R')
+runApp('Sophia_0517Shiny.R')
+shinyApp(
+ui = fluidPage(DTOutput('tbl')),
+server = function(input, output) {
+output$tbl = renderDT(
+iris, options = list(lengthChange = FALSE)
+)
+}
+)
+runApp('shiny example/inputDT.R')
+runApp('shiny example/inputDT.R')
+runApp('shiny example/inputDT.R')
+runApp('shiny example/inputDT.R')
+runApp('Sophia_0517Shiny.R')
+TheTable1 <-function(Data, con_var = NULL, cat_var = NULL, output = NULL){
+# input require Data, con variable and cat variable are optional
+# output Table 1, output to excel is optional
+if (is.null(con_var)){
+con_var   <- colnames(Data)[sapply(Data, class) == "numeric"]
+#con_names <- colnames(NewDat)[sapply(NewDat, class) == "numeric"]
+}
+if(is.null(cat_var)){
+cat_var_f <- colnames(Data)[sapply(Data, class) == "factor"]
+cat_var_char   <- colnames(Data)[sapply(Data, class) == "character"]
+#cat_names <- colnames(NewDat)[sapply(NewDat, class) == "character"]
+cat_var <- c(cat_var_f, cat_var_char)
+}
+all_var <- c(con_var, cat_var)
+table1tmp <- CreateTableOne(vars = all_var, factorVars = cat_var, data = Data, includeNA = F)
+X1=print(table1tmp, quote = FALSE, noSpaces = TRUE, showAllLevels = TRUE)
+Variable=row.names(X1)
+Variable[1]="Total number of cases"
+d=data.frame(Variable,X1)
+if(!is.null(output)){
+p2excel(datastable = d, filename = output)
+}else{
+d
+}
+}
+runApp('Sophia_0517Shiny.R')
+median(1,2)
+runApp('Sophia_0517Shiny.R')
+runApp('Sophia_0517Shiny.R')
+mean(1,2)
+runApp('Sophia_0517Shiny.R')
+runApp('Sophia_0517Shiny.R')
+runApp('shiny example/inputDT.R')
+runApp('shiny example/inputDT.R')
+runApp('Sophia_0517Shiny2.R')
+runApp('shiny example/inputDT.R')
+runApp('shiny example/inputDT.R')
+runApp('shiny example/inputDT.R')
+shinyApp(
+ui <- fluidPage(DT::dataTableOutput("ruless"),
+fluidRow(column(6, offset = 2, actionButton("save", "Save", width = 200)))
+),
+server <- function(input, output) {
+values <- reactiveValues(data = NULL)
+values$data <- as.data.frame(
+cbind(`variable` =c("a", "d", "b", "c", "e", "f"),
+`max` =c(1463, 159, 54, 52, 52, 220),
+`min` = c(0.7315, 0.0795, 0.027, 0.026, 0.026, 0.11)
+)
+)
+shinyInput = function(FUN, len, id, ...) {
+#validate(need(character(len)>0,message=paste("")))
+inputs = character(len)
+for (i in seq_len(len)) {
+inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+}
+inputs
+}
+output$ruless <- DT::renderDataTable({
+datatable(
+data.frame(values$data,
+upper.range=shinyInput(textInput,nrow(values$data),"cbox_"),
+lower.range=shinyInput(textInput,nrow(values$data),"cbox_")),
+selection="multiple",
+escape = FALSE,
+filter = list(position = 'top', clear = FALSE),
+extensions = list("ColReorder" = NULL, "Buttons" = NULL),
+options = list(
+dom = 'BRrltpi',
+autoWidth=TRUE,
+lengthMenu = list(c(10, 50, -1), c('10', '50', 'All')),
+ColReorder = TRUE,
+preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+buttons = list(
+'copy',
+'print',
+list(
+extend = 'collection',
+buttons = c('csv', 'excel', 'pdf'),
+text = 'Download',
+selected = TRUE
+)
+)
+)
+)
+})
+}
+)
+d
+library(shiny)
+library(DT)
+library(dplyr)
+shinyApp(
+ui <- fluidPage(DT::dataTableOutput("ruless"),
+fluidRow(column(6, offset = 2, actionButton("save", "Save", width = 200)))
+),
+server <- function(input, output) {
+values <- reactiveValues(data = NULL)
+values$data <- as.data.frame(
+cbind(`variable` =c("a", "d", "b", "c", "e", "f"),
+`max` =c(1463, 159, 54, 52, 52, 220),
+`min` = c(0.7315, 0.0795, 0.027, 0.026, 0.026, 0.11)
+)
+)
+shinyInput = function(FUN, len, id, ...) {
+#validate(need(character(len)>0,message=paste("")))
+inputs = character(len)
+for (i in seq_len(len)) {
+inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+}
+inputs
+}
+output$ruless <- DT::renderDataTable({
+datatable(
+data.frame(values$data,
+upper.range=shinyInput(textInput,nrow(values$data),"cbox_"),
+lower.range=shinyInput(textInput,nrow(values$data),"cbox_")),
+selection="multiple",
+escape = FALSE,
+filter = list(position = 'top', clear = FALSE),
+extensions = list("ColReorder" = NULL, "Buttons" = NULL),
+options = list(
+dom = 'BRrltpi',
+autoWidth=TRUE,
+lengthMenu = list(c(10, 50, -1), c('10', '50', 'All')),
+ColReorder = TRUE,
+preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+buttons = list(
+'copy',
+'print',
+list(
+extend = 'collection',
+buttons = c('csv', 'excel', 'pdf'),
+text = 'Download',
+selected = TRUE
+)
+)
+)
+)
+})
+output$whole <-DT::renderDataTable(
+{
+d<- input$save
+d
+}
+)
+}
+)
+shinyApp(
+ui <- fluidPage(DT::dataTableOutput("ruless"),
+fluidRow(column(6, offset = 2, actionButton("save", "Save", width = 200))),
+DT::dataTableOutput("whole"),),
+server <- function(input, output) {
+values <- reactiveValues(data = NULL)
+values$data <- as.data.frame(
+cbind(`variable` =c("a", "d", "b", "c", "e", "f"),
+`max` =c(1463, 159, 54, 52, 52, 220),
+`min` = c(0.7315, 0.0795, 0.027, 0.026, 0.026, 0.11)
+)
+)
+shinyInput = function(FUN, len, id, ...) {
+#validate(need(character(len)>0,message=paste("")))
+inputs = character(len)
+for (i in seq_len(len)) {
+inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+}
+inputs
+}
+output$ruless <- DT::renderDataTable({
+datatable(
+data.frame(values$data,
+upper.range=shinyInput(textInput,nrow(values$data),"cbox_"),
+lower.range=shinyInput(textInput,nrow(values$data),"cbox_")),
+selection="multiple",
+escape = FALSE,
+filter = list(position = 'top', clear = FALSE),
+extensions = list("ColReorder" = NULL, "Buttons" = NULL),
+options = list(
+dom = 'BRrltpi',
+autoWidth=TRUE,
+lengthMenu = list(c(10, 50, -1), c('10', '50', 'All')),
+ColReorder = TRUE,
+preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+buttons = list(
+'copy',
+'print',
+list(
+extend = 'collection',
+buttons = c('csv', 'excel', 'pdf'),
+text = 'Download',
+selected = TRUE
+)
+)
+)
+)
+})
+output$whole <-DT::renderDataTable(
+{
+d<- input$save
+d
+}
+)
+}
+)
+library(shiny)
+library(DT)
+library(dplyr)
+shinyApp(
+ui <- fluidPage(DT::dataTableOutput("ruless"),
+fluidRow(column(6, offset = 2, actionButton("save", "Save", width = 200))),
+DT::dataTableOutput("whole"),),
+server <- function(input, output) {
+values <- reactiveValues(data = NULL)
+values$data <- as.data.frame(
+cbind(`variable` =c("a", "d", "b", "c", "e", "f"),
+`max` =c(1463, 159, 54, 52, 52, 220),
+`min` = c(0.7315, 0.0795, 0.027, 0.026, 0.026, 0.11)
+)
+)
+shinyInput = function(FUN, len, id, ...) {
+#validate(need(character(len)>0,message=paste("")))
+inputs = character(len)
+for (i in seq_len(len)) {
+inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+}
+inputs
+}
+output$ruless <- DT::renderDataTable({
+datatable(
+data.frame(values$data,
+upper.range=shinyInput(textInput,nrow(values$data),"cbox_"),
+lower.range=shinyInput(textInput,nrow(values$data),"cbox_")),
+selection="multiple",
+escape = FALSE,
+filter = list(position = 'top', clear = FALSE),
+extensions = list("ColReorder" = NULL, "Buttons" = NULL),
+options = list(
+dom = 'BRrltpi',
+autoWidth=TRUE,
+lengthMenu = list(c(10, 50, -1), c('10', '50', 'All')),
+ColReorder = TRUE,
+preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+buttons = list(
+'copy',
+'print',
+list(
+extend = 'collection',
+buttons = c('csv', 'excel', 'pdf'),
+text = 'Download',
+selected = TRUE
+)
+)
+)
+)
+})
+output$whole <-DT::renderDataTable(
+{
+d<- input$save
+d
+}
+)
+}
+)
+shinyApp(
+ui <- fluidPage(DT::dataTableOutput("ruless"),
+fluidRow(column(6, offset = 2, actionButton("save", "Save", width = 200))),
+DT::dataTableOutput("whole")),
+server <- function(input, output) {
+values <- reactiveValues(data = NULL)
+values$data <- as.data.frame(
+cbind(`variable` =c("a", "d", "b", "c", "e", "f"),
+`max` =c(1463, 159, 54, 52, 52, 220),
+`min` = c(0.7315, 0.0795, 0.027, 0.026, 0.026, 0.11)
+)
+)
+shinyInput = function(FUN, len, id, ...) {
+#validate(need(character(len)>0,message=paste("")))
+inputs = character(len)
+for (i in seq_len(len)) {
+inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+}
+inputs
+}
+output$ruless <- DT::renderDataTable({
+datatable(
+data.frame(values$data,
+upper.range=shinyInput(textInput,nrow(values$data),"cbox_"),
+lower.range=shinyInput(textInput,nrow(values$data),"cbox_")),
+selection="multiple",
+escape = FALSE,
+filter = list(position = 'top', clear = FALSE),
+extensions = list("ColReorder" = NULL, "Buttons" = NULL),
+options = list(
+dom = 'BRrltpi',
+autoWidth=TRUE,
+lengthMenu = list(c(10, 50, -1), c('10', '50', 'All')),
+ColReorder = TRUE,
+preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+buttons = list(
+'copy',
+'print',
+list(
+extend = 'collection',
+buttons = c('csv', 'excel', 'pdf'),
+text = 'Download',
+selected = TRUE
+)
+)
+)
+)
+})
+output$whole <-DT::renderDataTable(
+{
+d<- input$save
+d
+}
+)
+}
+)
+shinyApp(
+ui <- fluidPage(DT::dataTableOutput("ruless"),
+fluidRow(column(6, offset = 2, actionButton("save", "Save", width = 200))),
+textOutput("whole")),
+server <- function(input, output) {
+values <- reactiveValues(data = NULL)
+values$data <- as.data.frame(
+cbind(`variable` =c("a", "d", "b", "c", "e", "f"),
+`max` =c(1463, 159, 54, 52, 52, 220),
+`min` = c(0.7315, 0.0795, 0.027, 0.026, 0.026, 0.11)
+)
+)
+shinyInput = function(FUN, len, id, ...) {
+#validate(need(character(len)>0,message=paste("")))
+inputs = character(len)
+for (i in seq_len(len)) {
+inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+}
+inputs
+}
+output$ruless <- DT::renderDataTable({
+datatable(
+data.frame(values$data,
+upper.range=shinyInput(textInput,nrow(values$data),"cbox_"),
+lower.range=shinyInput(textInput,nrow(values$data),"cbox_")),
+selection="multiple",
+escape = FALSE,
+filter = list(position = 'top', clear = FALSE),
+extensions = list("ColReorder" = NULL, "Buttons" = NULL),
+options = list(
+dom = 'BRrltpi',
+autoWidth=TRUE,
+lengthMenu = list(c(10, 50, -1), c('10', '50', 'All')),
+ColReorder = TRUE,
+preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+buttons = list(
+'copy',
+'print',
+list(
+extend = 'collection',
+buttons = c('csv', 'excel', 'pdf'),
+text = 'Download',
+selected = TRUE
+)
+)
+)
+)
+})
+output$whole <-DT::renderText(
+{
+d<- input$save
+d
+}
+)
+}
+)
+library(shiny)
+library(DT)
+library(dplyr)
+shinyApp(
+ui <- fluidPage(DT::dataTableOutput("ruless"),
+fluidRow(column(6, offset = 2, actionButton("save", "Save", width = 200))),
+textOutput("whole")),
+server <- function(input, output) {
+values <- reactiveValues(data = NULL)
+values$data <- as.data.frame(
+cbind(`variable` =c("a", "d", "b", "c", "e", "f"),
+`max` =c(1463, 159, 54, 52, 52, 220),
+`min` = c(0.7315, 0.0795, 0.027, 0.026, 0.026, 0.11)
+)
+)
+shinyInput = function(FUN, len, id, ...) {
+#validate(need(character(len)>0,message=paste("")))
+inputs = character(len)
+for (i in seq_len(len)) {
+inputs[i] = as.character(FUN(paste0(id, i), label = NULL, ...))
+}
+inputs
+}
+output$ruless <- DT::renderDataTable({
+datatable(
+data.frame(values$data,
+upper.range=shinyInput(textInput,nrow(values$data),"cbox_"),
+lower.range=shinyInput(textInput,nrow(values$data),"cbox_")),
+selection="multiple",
+escape = FALSE,
+filter = list(position = 'top', clear = FALSE),
+extensions = list("ColReorder" = NULL, "Buttons" = NULL),
+options = list(
+dom = 'BRrltpi',
+autoWidth=TRUE,
+lengthMenu = list(c(10, 50, -1), c('10', '50', 'All')),
+ColReorder = TRUE,
+preDrawCallback = JS('function() { Shiny.unbindAll(this.api().table().node()); }'),
+drawCallback = JS('function() { Shiny.bindAll(this.api().table().node()); } '),
+buttons = list(
+'copy',
+'print',
+list(
+extend = 'collection',
+buttons = c('csv', 'excel', 'pdf'),
+text = 'Download',
+selected = TRUE
+)
+)
+)
+)
+})
+output$whole <-renderText(
+{
+d<- input$save
+d
+}
+)
+}
+)
+values <- reactiveValues(data = NULL)
+runApp('shiny example/inputDT.R')
+runApp('shiny example/inputDT.R')
+runApp('Sophia_0517Shiny2.R')
+runApp('Sophia_0517Shiny2.R')
+runApp('shiny example/inputDT.R')
+w <- reshape(dat,
+idvar = "patient.code",
+timevar = "time",
+direction = "wide")
+dat<- longitu_test %>% group_by(patient.code) %>% mutate(time = row_number())
+library(tidyverse)
+library("reshape2")
+dat<- longitu_test %>% group_by(patient.code) %>% mutate(time = row_number())
+longitu_test <- read.csv("testdata/longitu test.csv")
+dat<- longitu_test %>% group_by(patient.code) %>% mutate(time = row_number())
+w <- reshape(dat,
+idvar = "patient.code",
+timevar = "time",
+direction = "wide")
+View(w)
+View(dat)
+?reshape
+seq_along(dat$patient.code)
+seq_along(varying(dat$patient.code))
