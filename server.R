@@ -10,6 +10,7 @@ library(shinyjs)
 library(DT)
 library(plotly)
 library(readxl)
+# Test Git.
 # This function will create the buttons for the datatable, they will be unique
 shinyInput <- function(FUN, len, id, ...) {inputs <- character(len)
 for (i in seq_len(len)) {
