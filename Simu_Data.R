@@ -16,3 +16,8 @@ Dtest$tnpr <- ifelse(Dtest$KPS == 80, NA,
                      ifelse(Dtest$KPS == 50, Dtest$Gender, Dtest$tnp)) 
 
 save(Dtest,file = "Dtest.RData")
+
+
+
+
+
