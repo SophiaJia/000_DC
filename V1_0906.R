@@ -128,21 +128,81 @@ server <- function(input, output, session) {
   
   ###1 org data ####
   output$org <- renderDataTable({
-    di <- inpD()
-    di
+    inpD()
   },
   selection = list(target = 'column'),
   rownames= FALSE)
   
   ###2 fuzzy data ####
   output$fuzzy <- renderDataTable({
-    di <-outD()
-    di
+    outD()
   },
   selection = list(target = 'column'),
   rownames= FALSE)
   
-  #con
+  ###3 con var ####
+  
+  ## make a con var dataset 
+  
+  con <- reactive({
+    d <- outD()
+    d [sapply(d, class) == "numeric" | sapply(d, class) == "integer"]
+  })
+  
+  output$inpContinuous <- renderDataTable({
+    d <- con()
+    contable <- cbind(
+      #`ID` = c(1:length(colnames(d_con))),
+      #`Variable name` = colnames(d_con),
+      `Mean`       = sapply(d, mean, na.rm=TRUE) %>% round(digits = 2),
+      `Median`     = apply(d, 2, median, na.rm=TRUE),
+      `Minimum`    = apply(d, 2, min, na.rm=TRUE),
+      `Maximum`    = apply(d, 2, max, na.rm=TRUE),
+      `Missing No` = apply(d, 2,function(x) sum(is.na(x)))
+    )
+    contable
+  },selection = 'single')
+  
+  # histogram with bins
+  # convenience function for computing xbin/ybin object given a number of bins
+  compute_bins <- function(x, n) {
+    list(
+      start = min(x, na.rm = T),
+      end = max(x, na.rm = T),
+      size = (max(x, na.rm = T) - min(x, na.rm = T)) / n
+    )
+  }
+  
+  # marker objects (con hist)
+  m <- list(color = toRGB("black"))
+  m2 <- list(color = toRGB("black", 0.2),
+             line = list(color = 'black', width = 0.3))
+  
+  # the histogram
+  output$con_hist <- renderPlotly({
+    d <- con()
+    index <- input$inpContinuous_rows_selected
+    if(is.null(input$inpContinuous_rows_selected)){
+      index = as.numeric(input$varID)
+    }
+    
+    names <- colnames(d)[index]
+    x  <-d[,index]
+    xbins <- compute_bins(x, input$xbins)
+    p <- plot_ly(x = x, type = "histogram", autobinx = F,
+                 xbins = xbins, marker = m2)
+    # obtain plotlyjs selection
+    s <- event_data("plotly_selected")
+    # if points are selected, subset the data, and highlight
+    if (length(s$x) > 0) {
+      p <- add_trace(p, x = s$x, type = "histogram", autobinx = F,
+                     xbins = xbins, marker = m)
+    }
+    p %>%
+      config(displayModeBar = F, showLink = F) %>%
+      layout(showlegend = F, barmode = "overlay", yaxis = list(title = "count"),
+             xaxis = list(title = names , showticklabels = T))
+  })
   
   
   
