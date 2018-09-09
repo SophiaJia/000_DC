@@ -64,17 +64,10 @@ ui <- fluidPage(
                                          min = 1, max = 50, value = 20, width = 230)
                            ),
                            textInput("con_min", "Minimum value", value = "0"),
-                           textInput("con_max", "Maximum Value", value = "100"),
-                           actionButton("con_check", label = "Check"),
-                           br(),
-                           br(),
-                           br(),
-                           dataTableOutput('con_aftercheck'),
-                           actionButton("refresh_con", label = "Refresh")
+                           actionButton("con_check", label = "Check")
+                          
                   ) ,
                   tabPanel("Categorical",
-                           h4("If this isn't your first time, update the character matching criteria"),
-                           hr(),
                            h4("1.Variables with one level, recommend remove"),
                            h5("These variables only have one layer. It might because 1) all of the patients have the same value, in which case you can remove this column; 2) it is non-random missing, in which case you should check your data."),
                            dataTableOutput("inpCategorical1"),
@@ -84,11 +77,9 @@ ui <- fluidPage(
                            dataTableOutput("inpCategorical234"),
                            hr(),
                            h4("3.Variables more than 5 levels, recommend clean up"),
+                           textInput("con_max", "Maximum Value", value = "100"),
                            h5("These variables have more than four levels. It usually is not suitable for analysis. We recommend you to check if to and try your best to compress less than four. "),
-                           dataTableOutput("inpCategorical5"),uiOutput("popup"),
-                           actionButton("refresh", label = "Refresh the table"),
-                           hr(),
-                           h4("Download the character matching criteria, for next use")),
+                           dataTableOutput("inpCategorical5")),
                   tabPanel("Date",
                            h4("Date Summary"),
                            h4("Reorder the date column"),
@@ -97,16 +88,8 @@ ui <- fluidPage(
                            actionButton("date_notshow", label = "Hide"),
                            actionButton("date_reset", label = "Reset"),
                            actionButton("date_check",   label = "Check"),
-                           #h5("If one of your endpoint is time-to-event variable, pleach check below:"),
-                           #selectInput("startday", "Start Day Var ID", choices = c(1:27)),
-                           #selectInput("lastday", "Last Day Var ID", choices = c(1:27)),
-                           #h5("Following this the start day later than the last day or the duration is too long"),
-                           #textInput("eevent", "Event Variable Name", value = "Status"),
-                           #textInput("eevent", "Event Date", value = "date.death"),
                            h4("Something wrong with the date"),
-                           dataTableOutput("date_wrong_out"),
-                           actionButton("refresh_date", label = "Refresh")
-
+                           dataTableOutput("date_wrong_out")
                   ),
                   tabPanel("Cleaned Data",
                            h5("If your data is repeated measure and has per visit per row,choose the column that indicates patient characteristics"),
@@ -119,9 +102,9 @@ ui <- fluidPage(
                            h4("Summary"),
                            textOutput("inpSummary"),
                            hr(),
-                           h4("Exact Duplicate"),
-                           dataTableOutput("dup"),
-                           hr(),
+                           #h4("Exact Duplicate"),
+                           #dataTableOutput("dup"),
+                           #hr(),
                            h4("Table 1"),
                            dataTableOutput("table1"),
                            h5("We made some default changes to your data; please download for more details."))
@@ -146,24 +129,18 @@ server <- function(input, output, session) {
     return(Org)
   }
   )
-
-  inter_data = reactiveValues()
   outD <- reactive({
     Org=inpD()
     id  <- as.numeric(input$varID)
     Org <- Org[!Org[,id] == "",]# If ID = "" then delete this row
     #Org <- Org[!is.na(Org[,id])]
     NewDat <- FuzzyClean2(Org)
-
-    # fix date as number when read from excel(may have better solutions)
-    #NewDat <- NewDat %>% mutate_all(IS.Date_xlsx)
-    inter_data[['afterfuzzy']] = NewDat
     return(NewDat)
   })
 
   ###2 con                                                               ####
   output$inpContinuous <- renderDataTable({
-    di <- inter_data[['afterfuzzy']]
+    di <- outD()
     d_con <- di[sapply(di, class) == "numeric" | sapply(di, class) == "integer"]
 
     contable <- cbind(
@@ -188,7 +165,7 @@ server <- function(input, output, session) {
    )
 
    observeEvent(input$con_check,{
-    di <- isolate(inter_data[['afterfuzzy']])
+    di <- outD
     `tmp ID` <-seq.int(nrow(di))
     di <- cbind(di,`tmp ID`)
     d_con <- di[sapply(di, class) == "numeric" | sapply(di, class) == "integer"]
@@ -227,7 +204,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$refresh_con,{
      update <- con_check_data[['table']]
-     di     <- inter_data[['afterfuzzy']]
+     di     <- outD
      `tmp ID` <-seq.int(nrow(di))
      di <- cbind(di,`tmp ID`)
      for (i in update[,3]){

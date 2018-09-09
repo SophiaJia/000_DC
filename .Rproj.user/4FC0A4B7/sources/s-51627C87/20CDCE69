@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "4032399451",
+    "hash" : "2627484904",
     "id" : "20CDCE69",
-    "lastKnownWriteTime" : 1536429467,
-    "last_content_update" : 1536429467500,
+    "lastKnownWriteTime" : 1536445416,
+    "last_content_update" : 1536445416461,
     "path" : "~/Google Drive/CCF/000_DC/func_tmp.R",
     "project_path" : "func_tmp.R",
     "properties" : {
-        "cursorPosition" : "56,0",
-        "scrollLine" : "44"
+        "cursorPosition" : "50,8",
+        "scrollLine" : "35"
     },
     "relative_order" : 2,
     "source_on_save" : false,

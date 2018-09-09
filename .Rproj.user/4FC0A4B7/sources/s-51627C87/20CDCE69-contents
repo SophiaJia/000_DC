@@ -10,7 +10,7 @@ text_filter_cell <- function(x){
   #output : text, number, mix
   #date variable consider as mix 
   options(warn=-1)
-  y = "Nothing"
+  y = "Mtext"
   if(is.na(x)) y = NA #csv file can recognize NA 
   else if(!grepl("[^A-Za-z]", x)) y = "text"
   else if (!is.na(as.numeric(x))) y = "number"
@@ -32,7 +32,7 @@ text_filter_cell(mix)
 text_filter_cell(tmp2[7])
 text_filter_cell("32;")
 text_filter_cell(";")
-text_filter_cell("3t")
+text_filter_cell("t;")
 text_filter_cell("1.1.1.1.1")
 
 ### text a column
@@ -44,10 +44,10 @@ text_filter_col <- function(x){
   
   if("number" %in% names(c1)){
     # the column is numeric 
-    y = parse_number(x)
+    y = FALSE
   }else if("text" %in% names(c1)){
     # the column is text
-    y = fixchar_col(x)
+    y = TRUE
   }else{
     # consider as number unless noted
     y = parse_number(x)
@@ -55,8 +55,23 @@ text_filter_col <- function(x){
   y
 }
 
-
-
+FuzzyClean_col2  <- function(x){
+  if(IS.Date(x)){
+    #fixDate is for the whole dataset, not for column.
+    y = fixDate_col(x)
+  }else if(IS.Number2(x)){
+    y = parse_number(x)
+    if(sum(y%%1==0,na.rm = TRUE) == sum(!is.na(y))){
+      y = as.integer(y)
+      if(((table(y) %>% length) < 6 & is.numeric(y))){
+        y = as.factor(y)
+      }
+    }
+  }else{
+    y = fixchar_col(x)
+  }
+  y
+}
 
 
 
