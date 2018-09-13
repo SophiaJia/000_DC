@@ -302,8 +302,29 @@ server <- function(input, output, session) {
   }, escape=FALSE,
   options = list(sDom  = '<"top">lrt<"bottom">ip'))
   
+  output$inpCategorical5 <- renderDataTable({
+    di <- outD()
+    lev <- sapply(di[sapply(di, mode) == "character"| sapply(di, class) == "factor"], table)
+    lev2<- mapply(length,lev)
+    leveleq2 <- lev2[lev2 > 4] %>% names
+    
+    d_cat <- di[leveleq2]
+    
+    ta <- cbind(
+      `Variable Name`  = colnames(d_cat),
+      `Levels` = apply(d_cat, 2, allLevel),
+      `Missing No` =  apply(d_cat, 2,function(x) sum(is.na(x))))
+    rownames(ta) <- NULL
+    ta
+    
+  }, escape=FALSE,
+  options = list(sDom  = '<"top">lrt<"bottom">ip'))
   
-  #date
+  ###5 date   ####
+  
+  
+  
+  
   
   #summary 
   output$table1 <- renderDataTable({

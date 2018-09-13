@@ -36,22 +36,16 @@ ui <- fluidPage(
       fileInput("file1", "Choose XLSX/CSV File to Upload",accept=c(".xlsx",".csv")),
       hr(),
       textInput("varID", "Number of your ID colume", value = "1"),
-      radioButtons("datatype", label = "Data Type",
-                   choices = list("Patient per row（Default）" = "wide","Visit per row" = "long"),
-                   selected = 1),
       hr(),
       #textInput(inputId = "outFileName",label = "Output File Name:",value = "processed.xlsx"),
       checkboxGroupInput("download_check", "Download",
-                         choices = list("Clean Data" = 1, "Dirty/Clean Compare" = 2, "Transformed Data" = 3, "Table 1" = 4),
+                         choices = list("Fuzzy cleaned Data" = 1, "Summary Table" = 2),
                          selected = 1),
       downloadButton("downloadData", "Download Output"),
       width = 3
     ),
     mainPanel(
       tabsetPanel(type = "tabs",
-                  tabPanel("Instruction",
-                           h5("Step one")
-                           ),
                   tabPanel("Continuous",
                            h4("Summary table"),
                            h5("This page summarizes the continuous variable of your data. If you think any range is incorrect, check it manually."),
@@ -64,7 +58,8 @@ ui <- fluidPage(
                                          min = 1, max = 50, value = 20, width = 230)
                            ),
                            textInput("con_min", "Minimum value", value = "0"),
-                           actionButton("con_check", label = "Check")
+                           actionButton("con_check", label = "Check"),
+                           dataTableOutput("con_aftercheck"),
                           
                   ) ,
                   tabPanel("Categorical",
