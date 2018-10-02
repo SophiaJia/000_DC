@@ -64,17 +64,20 @@ ui <- fluidPage(
                            dataTableOutput("con_aftercheck")
                   ) ,
                   tabPanel("Categorical",
-                           h4("1.Variables with one level, recommend remove"),
+                           h4("I.Variables with one level, recommend remove"),
                            h5("These variables only have one layer. It might because 1) all of the patients have the same value, in which case you can remove this column; 2) it is non-random missing, in which case you should check your data."),
                            dataTableOutput("inpCategorical1"),
                            hr(),
-                           h4("2.Variables with 2-4 levels, check correctness"),
+                           h4("II.Variables with 2-4 levels, check correctness"),
                            h5("These variables have 2 - 4 levels, which is suitable for analysis. However, you still need to check if there are typos and make sure that the level number is correct. E.g., gender should has only two levels. "),
                            dataTableOutput("inpCategorical234"),
+                           plotlyOutput("cat_bar234"),
                            hr(),
-                           h4("3.Variables more than 5 levels, recommend clean up"),
+                           h4("III.Variables more than 5 levels, recommend clean up"),
                            h5("These variables have more than four levels. It usually is not suitable for analysis. We recommend you to check if to and try your best to compress less than four. "),
-                           dataTableOutput("inpCategorical5")),
+                           dataTableOutput("inpCategorical5"),
+                           plotlyOutput("cat_bar5")),
+                  
                   tabPanel("Date",
                            h4("Date Summary"),
                            h4("Reorder the date column"),
@@ -284,15 +287,25 @@ server <- function(input, output, session) {
   }, escape=FALSE,
   options = list(sDom  = '<"top">lrt<"bottom">ip'))
   
+  #######################
   # cat 2,3,4
-  output$inpCategorical234 <- renderDataTable({
+  
+  cat234 <- reactive({
     di <- outD()
     lev <- sapply(di[sapply(di, mode) == "character"| sapply(di, class) == "factor"], table)
     lev2<- mapply(length,lev)
     leveleq2 <- lev2[lev2< 5& lev2 > 1] %>% names
     
     d_cat <- di[leveleq2]
-    
+    return(d_cat)
+  })
+  
+  
+  
+  
+  output$inpCategorical234 <- renderDataTable({
+    d_cat<- cat234()
+
     ta <- cbind(
       `Variable Name`  = colnames(d_cat),
       `Levels` = apply(d_cat, 2, allLevel),
@@ -301,43 +314,38 @@ server <- function(input, output, session) {
     ta
     
   }, escape=FALSE,
-  options = list(sDom  = '<"top">lrt<"bottom">ip'))
+  options = list(sDom  = '<"top">lrt<"bottom">ip'),selection = 'single')
   
-  # cat 2, 3, 4 - the histogram
-  output$con_hist <- renderPlotly({
-    d <- con()
-    index <- input$inpContinuous_rows_selected
-    if(is.null(input$inpContinuous_rows_selected)){
-      index = as.numeric(input$varID)
+  # cat 2, 3, 4 - the bar plot
+  output$cat_bar234 <- renderPlotly({
+    d<- cat234()
+    if(is.null(input$inpCategorical234_rows_selected)){
+      index = 1
+    }else{
+      index <- input$inpCategorical234_rows_selected
     }
-    
     names <- colnames(d)[index]
     x  <-d[,index]
-    xbins <- compute_bins(x, input$xbins)
-    p <- plot_ly(x = x, type = "histogram", autobinx = F,
-                 xbins = xbins, marker = m2)
-    # obtain plotlyjs selection
-    s <- event_data("plotly_selected")
-    # if points are selected, subset the data, and highlight
-    if (length(s$x) > 0) {
-      p <- add_trace(p, x = s$x, type = "histogram", autobinx = F,
-                     xbins = xbins, marker = m)
-    }
-    p %>%
-      config(displayModeBar = F, showLink = F) %>%
-      layout(showlegend = F, barmode = "overlay", yaxis = list(title = "count"),
-             xaxis = list(title = names , showticklabels = T))
+    p <- plot_ly(x = names(table(x)), y = table(x),type = "bar")
   })
   
+  #######################
   # cat 5
-  output$inpCategorical5 <- renderDataTable({
+  
+  cat5 <- reactive({
     di <- outD()
     lev <- sapply(di[sapply(di, mode) == "character"| sapply(di, class) == "factor"], table)
     lev2<- mapply(length,lev)
     leveleq2 <- lev2[lev2 > 4] %>% names
     
     d_cat <- di[leveleq2]
-    
+    return(d_cat)
+  })
+  
+  
+  
+  output$inpCategorical5 <- renderDataTable({
+    d_cat<- cat5()
     ta <- cbind(
       `Variable Name`  = colnames(d_cat),
       `Levels` = apply(d_cat, 2, allLevel),
@@ -346,8 +354,24 @@ server <- function(input, output, session) {
     ta
     
   }, escape=FALSE,
-  options = list(sDom  = '<"top">lrt<"bottom">ip'))
+  options = list(sDom  = '<"top">lrt<"bottom">ip'),
+  selection = 'single')
   
+  # cat 2, 3, 4 - the bar plot
+  output$cat_bar5 <- renderPlotly({
+    d<- cat5()
+    if(is.null(input$inpCategorical5_rows_selected)){
+      index = 1
+    }else{
+      index <- input$inpCategorical5_rows_selected
+    }
+    names <- colnames(d)[index]
+    x  <-d[,index]
+    p <- plot_ly(x = names(table(x)), y = table(x),type = "bar")
+  })
+  
+  
+  #######################
   ###5 date   ####
   date_check_data = reactiveValues(
     datarow = 2222
