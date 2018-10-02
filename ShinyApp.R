@@ -481,7 +481,8 @@ server <- function(input, output, session) {
   
   output$table1 <- renderDataTable({
     in_table1()
-  }, rownames= FALSE,
+  }, 
+  rownames= FALSE,
   extensions = 'Scroller', options = list(
     deferRender = TRUE,
     scrollY = 400,

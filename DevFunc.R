@@ -1,5 +1,5 @@
 library(readr)
-eg_long <- read_csv("testdata/eg_long.csv")
+eg_long <- read_csv("testdata/eg1.csv")
 
 
 ##try [[//d]] pertentional number 
