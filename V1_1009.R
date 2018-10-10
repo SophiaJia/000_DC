@@ -10,6 +10,7 @@ library(shinyjs)
 library(DT)
 library(plotly)
 library(readxl)
+require(gdata)
 
 ## some of the fuctions 
 movetolast <- function(data, move) {
@@ -61,8 +62,7 @@ ui <- fluidPage(
                            h3("Data Checking"),
                            textInput("con_min", "Minimum value", value = "0"),
                            textInput("con_max", "Maximum Value", value = "100"),
-                           dataTableOutput("con_aftercheck"),
-                           actionButton("con_save", label = "Save")
+                           dataTableOutput("con_aftercheck")
                   ) ,
                   tabPanel("Categorical",
                            h4("I.Variables with one level, recommend remove"),
@@ -80,17 +80,27 @@ ui <- fluidPage(
                            plotlyOutput("cat_bar5")),
                   
                   tabPanel("Date",
-                           h4("Date Summary"),
-                           h4("Reorder the date column"),
-                           dataTableOutput("inpDate"),
+                           h3("Check the format of the dates"),
+                           h5("This part is to check the format of your date.You need to keep the date format consistent. If nothing shows up means you are good to go."),
+                           dataTableOutput("wrongformDate"),
+                           #actionButton("date_fix", label = "Fix"),
+                           actionButton("date_download1", label = "download"),
+                           hr(),
+                           h3("Check the quality of the dates"),
+                           h5("This part is to check the quality of your date. Please follow the steps"),
+                           h5("Step 1: Select the columns that you are not interesed in, then hit the Hide button"),
+                           h5("Step 2: Reorder the reminding column in a desired time order: select TWO columns and hit the Reorder button"),
+                           h5("Step 3: Hit the Check button, it will show the results."),
+                           br(),
                            actionButton("date_exchage", label = "Reorder"),
                            actionButton("date_notshow", label = "Hide"),
                            actionButton("date_reset", label = "Reset"),
                            actionButton("date_check",   label = "Check"),
+                           dataTableOutput("inpDate"),
                            hr(),
                            h4("Something wrong with the date"),
-                           dataTableOutput("date_wrong_out"),
-                           actionButton("date_save", label = "Save")
+                           h5("This table highlights the date looks wrong."),
+                           dataTableOutput("date_wrong_out")
                   ),
                   tabPanel("Summary",
                            h4("Summary"),
@@ -117,7 +127,7 @@ server <- function(input, output, session) {
     if (ext=="csv"){
       Org <- read.csv(input$file1$datapath,stringsAsFactors = FALSE)
     } else {
-      Org <- read.xlsx(input$file1$datapath)
+      Org <- read.xls(input$file1$datapath,sheet = 1, header = TRUE)
     }
     return(Org)
   }
@@ -268,25 +278,6 @@ server <- function(input, output, session) {
   )
   )
   
-  ## make reactive dataset
-  con_download = reactiveValues(
-    whyneedthis = 2222
-  )
-  
-  ## setup download   (need a name and a list)
-  observeEvent(input$con_save,{
-    con_download[['1']] <-  
-  })
-  
-  con_download = reactiveValues(
-    whyneedthis = 2222
-  )
-  
-  
-  
-  
-  
-  
   
   ###4 cat var ####
   output$inpCategorical1 <- renderDataTable({
@@ -398,15 +389,47 @@ server <- function(input, output, session) {
     datarow = 2222
   )
   
-  out <- reactive({
+  date_format <- reactive({
+    do <- outD()
+    di <- inpD()
+    d_date_in <- cbind(`ID` = di[as.numeric(input$varID)],di[sapply(do, class) == "Date"])
+    d_date_out<- cbind(`ID` = di[as.numeric(input$varID)],do[sapply(do, class) == "Date"])
+    
+    datalist = list()
+    j = 1
+    for(i in 2:length(d_date_out[1,])){
+      tmp = d_date_in[is.na(d_date_out[,i]) &!is.na(d_date_in[,i])&(d_date_in[,i] != ""),]
+      if(!is.null(tmp) & length(tmp[,1]> 0)){
+        datalist[[j]] = tmp
+        j = j + 1
+      }
+    }
+    if(length(datalist) == 0){
+      all_date = NULL
+    }else if(length(datalist) == 1){
+      all_date = datalist[[1]]
+    }else{
+      all_date = do.call(dplyr::union, datalist)
+    }
+    all_date
+  }
+  )
+  
+  output$wrongformDate <- renderDataTable({
+    date_format()
+  },
+  options=list(
+    sDom  = '<"top">lrt<"bottom">ip'))
+  
+  dateout <- reactive({
     di <- outD()
     d_date<- di[sapply(di, class) == "Date"]
-    out <- cbind(`ID` = di[,as.numeric(input$varID)],d_date)
+    dateout <- cbind(`ID` = di[,as.numeric(input$varID)],d_date)
   }
   )
   
   observe({
-    date_check_data[['table']] = out()
+    date_check_data[['table']] = dateout()
   })
   
   
@@ -414,12 +437,13 @@ server <- function(input, output, session) {
     date_check_data[['table']]
   },
   rownames = FALSE,
-  selection = list(target = 'column')#,
+  selection = list(target = 'column'),
   #extensions = c('ColReorder', 'Buttons'),
   #options = list( dom = 'Bfrtip', buttons = I('colvis'),
   #                colReorder = TRUE)
   #extensions = c('Buttons'),
-  #options = list( dom = 'Bfrtip', buttons = I('colvis'))
+  #options = list( dom = 'Bfrtip', buttons = I('colvis')),
+  options=list(sDom  = '<"top">lrt<"bottom">ip')
   )
   
   observeEvent(input$date_notshow,{
@@ -468,11 +492,10 @@ server <- function(input, output, session) {
     date_check_data[['hind_con']] <- c((n+1):length(di))
     do
   })
-  #output$date_wrong_out = renderDataTable(date_wrong())
   
   output$date_wrong_out = renderDataTable({
     datatable(date_wrong(),
-              editable = TRUE,
+              editable = F,
               selection = 'none',
               #rownames = FALSE,
               # Hide logical columns
@@ -502,8 +525,7 @@ server <- function(input, output, session) {
   
   output$table1 <- renderDataTable({
     in_table1()
-  }, 
-  rownames= FALSE,
+  }, rownames= FALSE,
   extensions = 'Scroller', options = list(
     deferRender = TRUE,
     scrollY = 400,
@@ -531,27 +553,6 @@ server <- function(input, output, session) {
   )
   
   
-  output$downloadData3 <- downloadHandler(
-    filename = function() {
-      paste('CheckList-', Sys.Date(), '.csv', sep='')
-    },
-    content = function(file) {
-      
-      write.csv(Compartiments_simulation_sans_changement, file="Compartiments-simulation_sans_changement.csv")
-      write.csv(Esperance_simulation_sans_changement, file="Esperance-simulation_sans_changement.csv")
-      write.csv(Compartiments_simulation_avec_changement, file="Compartiments-simulation_avec_changement.csv")
-      write.csv(Esperance_simulation_avec_changement, file="Esperance-simulation_avec_changement.csv")
-      
-      channel <- odbcConnectExcel(xls.file = file,readOnly=FALSE)
-      sqlSave(channel, Compartiments_simulation_sans_changement, tablename = "Compartiments_simulation_sans_changement")
-      sqlSave(channel,  Esperance_simulation_sans_changement, tablename = "Esperance_simulation_sans_changement")
-      sqlSave(channel, Compartiments_simulation_avec_changement, tablename = "Compartiments_simulation_avec_changement")
-      sqlSave(channel, Esperance_simulation_avec_changement, tablename = "Esperance_simulation_avec_changement")
-      odbcClose(channel)
-      
-    },
-    contentType="application/xls" 
-  )
   
 }
 

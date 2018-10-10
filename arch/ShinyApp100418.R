@@ -61,8 +61,7 @@ ui <- fluidPage(
                            h3("Data Checking"),
                            textInput("con_min", "Minimum value", value = "0"),
                            textInput("con_max", "Maximum Value", value = "100"),
-                           dataTableOutput("con_aftercheck"),
-                           actionButton("con_save", label = "Save")
+                           dataTableOutput("con_aftercheck")
                   ) ,
                   tabPanel("Categorical",
                            h4("I.Variables with one level, recommend remove"),
@@ -89,8 +88,7 @@ ui <- fluidPage(
                            actionButton("date_check",   label = "Check"),
                            hr(),
                            h4("Something wrong with the date"),
-                           dataTableOutput("date_wrong_out"),
-                           actionButton("date_save", label = "Save")
+                           dataTableOutput("date_wrong_out")
                   ),
                   tabPanel("Summary",
                            h4("Summary"),
@@ -267,25 +265,6 @@ server <- function(input, output, session) {
     )
   )
   )
-  
-  ## make reactive dataset
-  con_download = reactiveValues(
-    whyneedthis = 2222
-  )
-  
-  ## setup download   (need a name and a list)
-  observeEvent(input$con_save,{
-    con_download[['1']] <-  
-  })
-  
-  con_download = reactiveValues(
-    whyneedthis = 2222
-  )
-  
-  
-  
-  
-  
   
   
   ###4 cat var ####
@@ -528,29 +507,6 @@ server <- function(input, output, session) {
     content = function(file) {
       write.csv(in_table1(),file, row.names = FALSE)
     }
-  )
-  
-  
-  output$downloadData3 <- downloadHandler(
-    filename = function() {
-      paste('CheckList-', Sys.Date(), '.csv', sep='')
-    },
-    content = function(file) {
-      
-      write.csv(Compartiments_simulation_sans_changement, file="Compartiments-simulation_sans_changement.csv")
-      write.csv(Esperance_simulation_sans_changement, file="Esperance-simulation_sans_changement.csv")
-      write.csv(Compartiments_simulation_avec_changement, file="Compartiments-simulation_avec_changement.csv")
-      write.csv(Esperance_simulation_avec_changement, file="Esperance-simulation_avec_changement.csv")
-      
-      channel <- odbcConnectExcel(xls.file = file,readOnly=FALSE)
-      sqlSave(channel, Compartiments_simulation_sans_changement, tablename = "Compartiments_simulation_sans_changement")
-      sqlSave(channel,  Esperance_simulation_sans_changement, tablename = "Esperance_simulation_sans_changement")
-      sqlSave(channel, Compartiments_simulation_avec_changement, tablename = "Compartiments_simulation_avec_changement")
-      sqlSave(channel, Esperance_simulation_avec_changement, tablename = "Esperance_simulation_avec_changement")
-      odbcClose(channel)
-      
-    },
-    contentType="application/xls" 
   )
   
 }
