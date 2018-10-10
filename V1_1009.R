@@ -62,7 +62,11 @@ ui <- fluidPage(
                            h3("Data Checking"),
                            textInput("con_min", "Minimum value", value = "0"),
                            textInput("con_max", "Maximum Value", value = "100"),
-                           dataTableOutput("con_aftercheck")
+                           dataTableOutput("con_aftercheck"),
+                           br(),
+                           actionButton("con_download", label = "download"),
+                           br(),
+                           hr()
                   ) ,
                   tabPanel("Categorical",
                            h4("I.Variables with one level, recommend remove"),
@@ -77,7 +81,8 @@ ui <- fluidPage(
                            h4("III.Variables more than 5 levels, recommend clean up"),
                            h5("These variables have more than four levels. It usually is not suitable for analysis. We recommend you to check if to and try your best to compress less than four. "),
                            dataTableOutput("inpCategorical5"),
-                           plotlyOutput("cat_bar5")),
+                           plotlyOutput("cat_bar5"),
+                           hr()),
                   
                   tabPanel("Date",
                            h3("Check the format of the dates"),
@@ -100,7 +105,11 @@ ui <- fluidPage(
                            hr(),
                            h4("Something wrong with the date"),
                            h5("This table highlights the date looks wrong."),
-                           dataTableOutput("date_wrong_out")
+                           dataTableOutput("date_wrong_out"),
+                           br(),
+                           actionButton("date_download2", label = "download"),
+                           br(),
+                           hr()
                   ),
                   tabPanel("Summary",
                            h4("Summary"),
