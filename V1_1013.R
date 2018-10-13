@@ -10,6 +10,7 @@ library(shinyjs)
 library(DT)
 library(plotly)
 library(readxl)
+require(gdata)
 
 ## some of the fuctions 
 movetolast <- function(data, move) {
@@ -25,11 +26,13 @@ ui <- fluidPage(
   titlePanel("Understand Your Data"),
   sidebarLayout(
     sidebarPanel(
-      fileInput("file1", "Choose XLSX/CSV File to Upload",accept=c(".xlsx",".csv")),
+      fileInput("file1", "Step1 : Choose XLSX/CSV File to Upload",accept=c(".xlsx",".csv")),
       hr(),
-      textInput("varID", "Index of your ID colume", value = "1"),
+      textInput("varID", "Step2 : Input the index of your ID colume", value = "1"),
       hr(),
-      h5("Download"),
+      h5(strong("Step3: Go through each tab on the right side")),
+      hr(),
+      h5(strong("Step4: Download")),
       downloadButton("downloadData1", "Fuzzy cleaned Data"),
       h5(" "),
       downloadButton("downloadData2", "Table1"),
@@ -38,12 +41,27 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(type = "tabs",
                   tabPanel("Org Data",
+                           h4("This is how your data looks like after be imported"),
+                           hr(),
                            dataTableOutput("org")),
                   tabPanel("After Fuzzy Cleaning",
+                           h4("We did a simple cleaning on your data"),
+                           #br(),
+                           h4(strong("Texts:")),
+                           h5("We converted all letters to upper case, trimmed the space, treated unknown/NA/blank as missing"),
+                           #br(),
+                           h4(strong("Dates:")),
+                           h5("We found the date order of the majority cases. For example, Month-Day-Year. Used that date order to unify the column. Dates that were not in the right order was treated as blanks. See more details under the 'Date' tap "),
+                           #br(),
+                           h4(strong("Numbers:")),
+                           h5("Numbers should not mixed with text. We detected the numerical data based on our algorithm."),
+                           h5("Take tumor size as an example, if all of the variable is number excepted one or two said 'unknown', then this column will treated as number leanving 'unknown' as blank."),
+                           h5("Another examples, for convenience, stage 2A, 2B will all treated as stage 2."),
+                           hr(),
                            dataTableOutput("fuzzy")),
                   tabPanel("Continuous",
                            h3("Summary Table (Select the variable (row))"),
-                           h5("This page summarizes the continuous variable of your data."),
+                           h5("This page summarizes the continuous variable of your data. Select one row from the following table"),
                            dataTableOutput("inpContinuous"),
                            hr(),
                            h3("Visualization"),
@@ -59,47 +77,72 @@ ui <- fluidPage(
                            h3("  "),
                            hr(),
                            h3("Data Checking"),
+                           h5("Input your expected range of this variable"),
                            textInput("con_min", "Minimum value", value = "0"),
                            textInput("con_max", "Maximum Value", value = "100"),
-                           dataTableOutput("con_aftercheck")
+                           h3("Out of Range"),
+                           h5("This is the records that do not fall into the range. You can download the following table and check it out later"),
+                           dataTableOutput("con_aftercheck"),
+                           br(),
+                           downloadButton("con_download", label = "Download above Table"),
+                           br(),
+                           hr()
                   ) ,
                   tabPanel("Categorical",
-                           h4("I.Variables with one level, recommend remove"),
+                           h3("I.Variables with one level, recommend remove"),
                            h5("These variables only have one layer. It might because 1) all of the patients have the same value, in which case you can remove this column; 2) it is non-random missing, in which case you should check your data."),
                            dataTableOutput("inpCategorical1"),
                            hr(),
-                           h4("II.Variables with 2-4 levels, check correctness"),
-                           h5("These variables have 2 - 4 levels, which is suitable for analysis. However, you still need to check if there are typos and make sure that the level number is correct. E.g., gender should has only two levels. "),
+                           h3("II.Variables with 2-4 levels, check correctness"),
+                           h5("These variables have 2 - 4 levels, which is suitable for analysis. However, you still need to check if there are typos and make sure that the number of the levels is correct. E.g., gender should has only two levels. "),
+                           h5("Select a variable to see the its bar plot"),
                            dataTableOutput("inpCategorical234"),
                            plotlyOutput("cat_bar234"),
                            hr(),
-                           h4("III.Variables more than 5 levels, recommend clean up"),
-                           h5("These variables have more than four levels. It usually is not suitable for analysis. We recommend you to check if to and try your best to compress less than four. "),
+                           h3("III.Variables more than 5 levels, recommend clean up"),
+                           h5("These variables have more than four levels. It usually is not suitable for analysis. We recommend you to check if to and try your best to compress less than four unless you got big dataset"),
+                           h5("Select a variable to see the its bar plot"),
                            dataTableOutput("inpCategorical5"),
-                           plotlyOutput("cat_bar5")),
+                           plotlyOutput("cat_bar5"),
+                           hr()),
                   
                   tabPanel("Date",
-                           h4("Date Summary"),
-                           h4("Reorder the date column"),
-                           dataTableOutput("inpDate"),
+                           h3("Check the format of the dates"),
+                           h5("This part is to check the format of your date.You need to keep the date format consistent and complete. If nothing shows up means you are good to go."),
+                           dataTableOutput("wrongformDate"),
+                           #actionButton("date_fix", label = "Fix"),
+                           downloadButton("date_download1", label = "Download above Table"),
+                           hr(),
+                           h3("Check the quality of the dates"),
+                           h5("This part is to check the quality of your date. Please follow the steps"),
+                           h5("Step 1: Select the columns that you are not interesed in, then hit the Hide button"),
+                           h5("Step 2: Reorder the reminding column in a desired time order: select TWO columns and hit the Reorder button"),
+                           h5("Step 3: Hit the Check button, it will show the results."),
+                           br(),
                            actionButton("date_exchage", label = "Reorder"),
                            actionButton("date_notshow", label = "Hide"),
                            actionButton("date_reset", label = "Reset"),
                            actionButton("date_check",   label = "Check"),
+                           dataTableOutput("inpDate"),
                            hr(),
                            h4("Something wrong with the date"),
-                           dataTableOutput("date_wrong_out")
+                           h5("This table highlights the date that looks wrong."),
+                           dataTableOutput("date_wrong_out"),
+                           br(),
+                           downloadButton("date_download2", label = "Download above Table"),
+                           br(),
+                           hr()
                   ),
                   tabPanel("Summary",
-                           h4("Summary"),
-                           textOutput("inpSummary"),
-                           hr(),
+                           #h5("Summary"),
+                           #textOutput("inpSummary"),
+                           #hr(),
                            #h4("Exact Duplicate"),
                            #dataTableOutput("dup"),
                            #hr(),
-                           h4("Table 1"),
-                           dataTableOutput("table1"),
-                           h5("We made some default changes to your data; please download for more details."))
+                           h5("Summary Table"),
+                           dataTableOutput("table1")#,
+                           #h5("We made some default changes to your data; please download for more details."))
       )
     )
   )
@@ -115,7 +158,7 @@ server <- function(input, output, session) {
     if (ext=="csv"){
       Org <- read.csv(input$file1$datapath,stringsAsFactors = FALSE)
     } else {
-      Org <- read.xlsx(input$file1$datapath)
+      Org <- read.xls(input$file1$datapath,sheet = 1, header = TRUE)
     }
     return(Org)
   }
@@ -266,6 +309,15 @@ server <- function(input, output, session) {
   )
   )
   
+  #
+  output$con_download <- downloadHandler(
+    filename = function() {
+      paste('CheckCon-',colnames(con())[input$inpContinuous_rows_selected],'.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(con_check_data[['table']],file, row.names = FALSE)
+    }
+  )
   
   ###4 cat var ####
   output$inpCategorical1 <- renderDataTable({
@@ -377,15 +429,57 @@ server <- function(input, output, session) {
     datarow = 2222
   )
   
-  out <- reactive({
+  date_format <- reactive({
+    do <- outD()
+    di <- inpD()
+    d_date_in <- cbind(`ID` = di[as.numeric(input$varID)],di[sapply(do, class) == "Date"])
+    d_date_out<- cbind(`ID` = di[as.numeric(input$varID)],do[sapply(do, class) == "Date"])
+    
+    datalist = list()
+    j = 1
+    for(i in 2:length(d_date_out[1,])){
+      tmp = d_date_in[is.na(d_date_out[,i]) &!is.na(d_date_in[,i])&(d_date_in[,i] != ""),]
+      if(!is.null(tmp) & length(tmp[,1]> 0)){
+        datalist[[j]] = tmp
+        j = j + 1
+      }
+    }
+    if(length(datalist) == 0){
+      all_date = NULL
+    }else if(length(datalist) == 1){
+      all_date = datalist[[1]]
+    }else{
+      all_date = do.call(dplyr::union, datalist)
+    }
+    all_date
+  }
+  )
+  
+  output$wrongformDate <- renderDataTable({
+    date_format()
+  },
+  options=list(
+    sDom  = '<"top">lrt<"bottom">ip'))
+  
+  
+  output$date_download1 <- downloadHandler(
+    filename = function() {
+      paste('Dates_Format.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(date_format(),file, row.names = FALSE)
+    }
+  )
+  
+  dateout <- reactive({
     di <- outD()
     d_date<- di[sapply(di, class) == "Date"]
-    out <- cbind(`ID` = di[,as.numeric(input$varID)],d_date)
+    dateout <- cbind(`ID` = di[,as.numeric(input$varID)],d_date)
   }
   )
   
   observe({
-    date_check_data[['table']] = out()
+    date_check_data[['table']] = dateout()
   })
   
   
@@ -393,12 +487,13 @@ server <- function(input, output, session) {
     date_check_data[['table']]
   },
   rownames = FALSE,
-  selection = list(target = 'column')#,
+  selection = list(target = 'column'),
   #extensions = c('ColReorder', 'Buttons'),
   #options = list( dom = 'Bfrtip', buttons = I('colvis'),
   #                colReorder = TRUE)
   #extensions = c('Buttons'),
-  #options = list( dom = 'Bfrtip', buttons = I('colvis'))
+  #options = list( dom = 'Bfrtip', buttons = I('colvis')),
+  options=list(sDom  = '<"top">lrt<"bottom">ip')
   )
   
   observeEvent(input$date_notshow,{
@@ -420,7 +515,7 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$date_reset,{
-    date_check_data[['table']] <- out()
+    date_check_data[['table']] = dateout()
   })
   
   date_wrong <- eventReactive(input$date_check,{
@@ -447,11 +542,10 @@ server <- function(input, output, session) {
     date_check_data[['hind_con']] <- c((n+1):length(di))
     do
   })
-  #output$date_wrong_out = renderDataTable(date_wrong())
   
   output$date_wrong_out = renderDataTable({
     datatable(date_wrong(),
-              editable = TRUE,
+              editable = F,
               selection = 'none',
               #rownames = FALSE,
               # Hide logical columns
@@ -467,6 +561,15 @@ server <- function(input, output, session) {
                   backgroundColor = styleInterval(0, c( 'white','gray'))
       )
   }
+  )
+  
+  output$date_download2 <- downloadHandler(
+    filename = function() {
+      paste('Dates_check.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(date_wrong(),file, row.names = FALSE)
+    }
   )
   
   
@@ -507,6 +610,8 @@ server <- function(input, output, session) {
       write.csv(in_table1(),file, row.names = FALSE)
     }
   )
+  
+  
   
 }
 
